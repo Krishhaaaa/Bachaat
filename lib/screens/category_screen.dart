@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../models/result_model.dart';
 import 'result_screen.dart';
 
 class CategoryScreen extends StatefulWidget {
@@ -26,7 +27,6 @@ class _CategoryScreenState extends State<CategoryScreen> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-
             /// Pickup field
             _inputField(
               controller: pickupController,
@@ -88,9 +88,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
       decoration: InputDecoration(
         prefixIcon: Icon(icon),
         labelText: label,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
       ),
     );
   }

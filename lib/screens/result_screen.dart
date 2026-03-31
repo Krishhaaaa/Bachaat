@@ -1,60 +1,61 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../providers/comparison_provider.dart';
+import '../services/mock_api_service.dart';
+import '../models/result_model.dart';
+import '../widgets/result_tile.dart';
 
 class ResultScreen extends StatefulWidget {
   final String category;
-  final double value;
+  final double value; // distance
 
-  const ResultScreen({
-    super.key,
-    required this.category,
-    required this.value,
-  });
+  const ResultScreen({super.key, required this.category, required this.value});
 
   @override
   State<ResultScreen> createState() => _ResultScreenState();
 }
 
 class _ResultScreenState extends State<ResultScreen> {
+  List<Result> results = [];
+  bool isLoading = true;
+
   @override
   void initState() {
     super.initState();
-    _fetch();
+    loadResults(); // 👈 CALL HERE
   }
 
-  void _fetch() {
-    final provider =
-        Provider.of<ComparisonProvider>(context, listen: false);
+  Future<void> loadResults() async {
+    try {
+      // 🔥 YOUR CODE GOES HERE
+      final providers = await MockApiService.fetchProviders();
 
-    if (widget.category == "food") {
-      provider.searchFood(widget.value);
-    } else if (widget.category == "delivery") {
-      provider.searchDelivery(widget.value);
-    } else {
-      provider.searchRide(widget.value);
+      final resultsData = MockApiService.generateResults(
+        providers: providers,
+        distance: widget.value, // dynamic distance
+      );
+
+      final sorted = MockApiService.sortResults(resultsData, "price");
+
+      setState(() {
+        results = sorted;
+        isLoading = false;
+      });
+    } catch (e) {
+      print("Error: $e");
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<ComparisonProvider>(context);
-
     return Scaffold(
-      appBar: AppBar(title: const Text("Results")),
-      body: ListView.builder(
-        itemCount: provider.results.length,
-        itemBuilder: (context, i) {
-          final r = provider.results[i];
-
-          return Card(
-            child: ListTile(
-              title: Text(r.provider),
-              subtitle: Text("₹${r.price} • ${r.time} min"),
+      appBar: AppBar(title: Text("${widget.category.toUpperCase()} Results")),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : ListView.builder(
+              itemCount: results.length,
+              itemBuilder: (context, index) {
+                return ResultTile(result: results[index]);
+              },
             ),
-          );
-        },
-      ),
     );
   }
 }
