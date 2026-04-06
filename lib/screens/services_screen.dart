@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../screens/category_screen.dart';
 
 class ServicesScreen extends StatelessWidget {
   const ServicesScreen({super.key});
@@ -7,66 +8,43 @@ class ServicesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-
-            /// Title
             const Text(
               "Services",
-              style: TextStyle(
-                fontSize: 34,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 34, fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 30),
 
-            /// GO ANYWHERE SECTION
             const Text(
               "Go anywhere",
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 20),
 
-            _gridSection([
+            _gridSection(context, [
               _ServiceItem("Ride", Icons.directions_car),
               _ServiceItem("2-Wheels", Icons.two_wheeler),
               _ServiceItem("Rental Cars", Icons.car_rental, promo: true),
-              _ServiceItem("Reserve", Icons.calendar_today),
-              _ServiceItem("Group Ride", Icons.people),
-              _ServiceItem("Hourly", Icons.access_time),
-              _ServiceItem("Teens", Icons.person_outline),
             ]),
 
             const SizedBox(height: 40),
 
-            /// DELIVERY SECTION
             const Text(
               "Get anything delivered",
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 20),
 
-            _gridSection([
+            _gridSection(context, [
               _ServiceItem("Food", Icons.restaurant, promo: true),
               _ServiceItem("Grocery", Icons.shopping_basket, promo: true),
-              _ServiceItem("Alcohol", Icons.local_bar, promo: true),
               _ServiceItem("Convenience", Icons.store),
-              _ServiceItem("Health", Icons.medical_services),
-              _ServiceItem("Personal Care", Icons.spa),
-              _ServiceItem("Baby", Icons.child_care),
-              _ServiceItem("Gourmet", Icons.fastfood),
             ]),
           ],
         ),
@@ -74,81 +52,74 @@ class ServicesScreen extends StatelessWidget {
     );
   }
 
-  /// GRID BUILDER
-  Widget _gridSection(List<_ServiceItem> items) {
+  Widget _gridSection(BuildContext context, List<_ServiceItem> items) {
     return GridView.builder(
       itemCount: items.length,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4,
+        crossAxisCount: 3,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
-        childAspectRatio: 0.8,
+        childAspectRatio: 1,
       ),
       itemBuilder: (context, index) {
-        return _serviceCard(items[index]);
+        return _serviceCard(items[index], context);
       },
     );
   }
 
-  /// CARD UI
-  Widget _serviceCard(_ServiceItem item) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Stack(
-        children: [
+  Widget _serviceCard(_ServiceItem item, BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        String category = "";
 
-          /// PROMO TAG
-          if (item.promo)
-            Positioned(
-              top: 6,
-              right: 6,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 6,
-                  vertical: 2,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.green,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: const Text(
-                  "Promo",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                  ),
-                ),
-              ),
-            ),
+        switch (item.title.toLowerCase()) {
+          case "ride":
+            category = "ride";
+            break;
+          case "2-wheels":
+            category = "2-wheels";
+            break;
+          case "rental cars":
+            category = "rental";
+            break;
+          case "food":
+            category = "food";
+            break;
+          case "grocery":
+            category = "grocery";
+            break;
+          case "convenience":
+            category = "convenience";
+            break;
+          default:
+            category = "ride";
+        }
 
-          /// CONTENT
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(item.icon, size: 32),
-              const SizedBox(height: 8),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: Text(
-                  item.title,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 12),
-                ),
-              ),
-            ],
-          ),
-        ],
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => CategoryScreen(category: category)),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(item.icon, size: 32),
+            const SizedBox(height: 8),
+            Text(item.title, style: const TextStyle(fontSize: 12)),
+          ],
+        ),
       ),
     );
   }
 }
 
-/// MODEL CLASS
 class _ServiceItem {
   final String title;
   final IconData icon;

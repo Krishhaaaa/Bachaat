@@ -1,3 +1,4 @@
+import 'package:bachaat/screens/map_selection_screen.dart';
 import 'package:flutter/material.dart';
 import '../models/result_model.dart';
 import 'result_screen.dart';
@@ -55,13 +56,27 @@ class _CategoryScreenState extends State<CategoryScreen> {
                     borderRadius: BorderRadius.circular(15),
                   ),
                 ),
-                onPressed: () {
+                onPressed: () async {
+                  final distance = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const MapSelectionScreen(),
+                    ),
+                  );
+
+                  print("Received distance: $distance");
+
+                  if (distance == null) {
+                    print("No distance received");
+                    return;
+                  }
+
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (_) => ResultScreen(
                         category: widget.category,
-                        value: 10, // mock distance for now
+                        value: distance,
                       ),
                     ),
                   );

@@ -26,7 +26,6 @@ class _MapSelectionScreenState extends State<MapSelectionScreen> {
     _getCurrentLocation();
   }
 
-  /// Get user location
   Future<void> _getCurrentLocation() async {
     await Geolocator.requestPermission();
 
@@ -45,12 +44,18 @@ class _MapSelectionScreenState extends State<MapSelectionScreen> {
     });
   }
 
-  /// When user taps map
-  void _onMapTap(LatLng position) async {
+  void _onMapTap(LatLng position) {
     setState(() {
       if (pickup == null) {
         pickup = position;
+      } else if (destination == null) {
+        destination = position;
+        _drawRoute();
+      }
 
+      markers.clear();
+
+      if (pickup != null) {
         markers.add(
           Marker(
             markerId: const MarkerId("pickup"),
@@ -58,9 +63,9 @@ class _MapSelectionScreenState extends State<MapSelectionScreen> {
             infoWindow: const InfoWindow(title: "Pickup"),
           ),
         );
-      } else if (destination == null) {
-        destination = position;
+      }
 
+      if (destination != null) {
         markers.add(
           Marker(
             markerId: const MarkerId("destination"),
@@ -68,31 +73,27 @@ class _MapSelectionScreenState extends State<MapSelectionScreen> {
             infoWindow: const InfoWindow(title: "Destination"),
           ),
         );
-
-        _drawRoute();
       }
     });
   }
 
-  /// Draw route between points
   void _drawRoute() {
     if (pickup == null || destination == null) return;
 
-    setState(() {
-      polylines.add(
-        Polyline(
-          polylineId: const PolylineId("route"),
-          points: [pickup!, destination!],
-          width: 5,
-          color: Colors.blue,
-        ),
-      );
+    polylines.clear();
 
-      _calculateDistance();
-    });
+    polylines.add(
+      Polyline(
+        polylineId: const PolylineId("route"),
+        points: [pickup!, destination!],
+        width: 5,
+        color: Colors.blue,
+      ),
+    );
+
+    _calculateDistance();
   }
 
-  /// Calculate distance
   void _calculateDistance() {
     if (pickup == null || destination == null) return;
 
@@ -103,20 +104,27 @@ class _MapSelectionScreenState extends State<MapSelectionScreen> {
       destination!.longitude,
     );
 
-    setState(() {
-      distanceKm = meters / 1000;
-    });
+    distanceKm = meters / 1000;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Select Route")),
-
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          setState(() {
+            pickup = null;
+            destination = null;
+            markers.clear();
+            polylines.clear();
+            distanceKm = 0;
+          });
+        },
+        child: const Icon(Icons.refresh),
+      ),
       body: Stack(
         children: [
-
-          /// MAP
           GoogleMap(
             initialCameraPosition: const CameraPosition(
               target: LatLng(19.0760, 72.8777),
@@ -129,10 +137,9 @@ class _MapSelectionScreenState extends State<MapSelectionScreen> {
             myLocationEnabled: true,
           ),
 
-          /// Distance card
           if (distanceKm > 0)
             Positioned(
-              bottom: 20,
+              bottom: 120,
               left: 20,
               right: 20,
               child: Container(
@@ -145,6 +152,22 @@ class _MapSelectionScreenState extends State<MapSelectionScreen> {
                   "Distance: ${distanceKm.toStringAsFixed(2)} km",
                   style: const TextStyle(fontSize: 18),
                 ),
+              ),
+            ),
+
+          if (distanceKm > 0)
+            Positioned(
+              bottom: 40,
+              left: 20,
+              right: 20,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context, distanceKm);
+                  print(
+                    "Returning distance: $distanceKm",
+                  ); // 🔥 RETURN DISTANCE
+                },
+                child: const Text("Confirm Route"),
               ),
             ),
         ],
